@@ -181,8 +181,44 @@ big_int<T> multiply_helper(const big_int<T>& A, T value, int position) {
 template<typename T>
 big_int<T> operator*(const big_int<T>& A, const big_int<T>& B) {
 	big_int<T> ret = 0;
-	for (int i = 0, till = B.arr.size(); i < till; ++i)
-		ret += multiply_helper(A, B.arr[i], i);
+	//for (int i = 0, till = B.arr.size(); i < till; ++i)
+		//ret += multiply_helper(A, B.arr[i], i);
+	#pragma region
+	/* when i wrote this i and god knew what i was writing, NOW ONLY GOD KNOWS */
+	for (int i = 0, till = B.arr.size(); i < till; ++i) {
+		T value = B.arr[i];
+		if (!value) continue;
+		T carry = 0;
+		for (int j = 0, tillj = A.arr.size(); j < tillj; ++j) {
+			T elem = value * A.arr[j] + carry;
+			carry = big_int<T>::upper(elem);
+			big_int<T>::clean_upper(elem);
+
+			T carry_ret = elem;
+			T position = i + j;
+			while (carry_ret) {
+				while (ret.arr.size() <= position) ret.arr.push_back(0);
+				T elem = ret.arr[position] + carry_ret;
+				carry_ret = big_int<T>::upper(elem);
+				big_int<T>::clean_upper(elem);
+				ret.arr[position] = elem;
+				++position;
+			}
+		}
+		if (carry > 0) {
+			int position = i + A.arr.size();
+			T carry_ret = carry;
+			while (carry_ret) {
+				while (ret.arr.size() <= position) ret.arr.push_back(0);
+				T elem = ret.arr[position] + carry_ret;
+				carry_ret = big_int<T>::upper(elem);
+				big_int<T>::clean_upper(elem);
+				ret.arr[position] = elem;
+				++position;
+			}
+		}
+	}
+	#pragma endregion
 	return ret;
 }
 
@@ -307,7 +343,7 @@ template<typename T>
 bool is_prime(const big_int<T>& A) {
 	T to_add = 4;
 	big_int<T> sq = A.sqrt();
-	for(big_int<T> bi = 5; bi*bi <= A; bi += to_add) {
+	for(big_int<T> bi = 5; bi <= sq; bi += to_add) {
 		if (A.is_multiplicant_of(bi))
 			return false;
 		to_add = (to_add == 2) ? 4 : 2;
@@ -329,7 +365,7 @@ void test_seven() {
 
 int main() {
 	
-	test_seven();
+	test_four();
 
 	return 0;
 }
