@@ -115,21 +115,25 @@ struct big_int {
 			arr[i] = elem;
 			carry = extra << (shift - degs);
 		}
-		if (arr.back() == 0) arr.pop_back();
+		while (!arr.back()) arr.pop_back();
 		return *this;
 	}
 
-	bool is_multiplicant_of(const big_int<T>& A) {
+	bool is_multiplicant_of(const big_int<T>& A) const {
 		big_int<T> low = 1, high = from_power_two(arr.size() * shift);
 		big_int<T> cur = 0;
-		while (low != high) {
-			cout << low << ' ' << high << endl;
+		while (true) {
 			cur = (low + high);
 			cur >>= 1; /* divide by two */
+			if (cur == low) break;
+			//big_int<T> res = cur*A;
+			//cout << low << ' ' << high << " cur:" << cur << " res:" << res << endl;
+			//cout << res << " <= " << *this << " => " << (res <= *this) << endl;
+
 			if (cur*A <= *this)
-				high = cur;
-			else
 				low = cur;
+			else
+				high = cur;
 		}
 		return cur*A == *this;
 	}
@@ -272,14 +276,41 @@ void test_five() {
 	}
 }
 
-int main() {
-	
+void test_six() {
 	big_int<uint8> bi = (210) /* 210 = 2*3*5*7 */;
 	cout << "multiplicants of " << bi << " are : " << endl;
-	for (big_int<uint8> bj = 1, till = 210; bj <= till; bj += 1) {
+	for (big_int<uint8> bj = 1, till = 35; bj <= till; bj += 1) {
 		if (bi.is_multiplicant_of(bj))
 			cout << bj << ' ';
 	}
+	cout << endl;
+}
+
+template<typename T>
+bool is_prime(const big_int<T>& A) {
+	T to_add = 2;
+	for(big_int<T> bi = 5; bi*bi <= A; bi += to_add) {
+		if (A.is_multiplicant_of(bi))
+			return false;
+		to_add = (to_add == 2) ? 4 : 2;
+	}
+	return true;
+}
+
+void test_seven() {
+	big_int<uint8> till = 100;
+	//till = till * till; // 10,000
+
+	uint8 to_add = 2;
+	for (big_int<uint8> bi = 5; bi <= till; bi += to_add) {
+		if (is_prime(bi))
+			cout << bi << endl;
+		to_add = (to_add == 2) ? 4 : 2;
+	}
+}
+
+int main() {
 	
+	test_seven();
 	return 0;
 }
