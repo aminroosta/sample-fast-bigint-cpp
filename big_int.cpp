@@ -137,6 +137,23 @@ struct big_int {
 		}
 		return cur*A == *this;
 	}
+
+	big_int sqrt() const {
+		big_int<T> low = 1, high = from_power_two(arr.size() * shift);
+		big_int<T> cur = 0;
+		while (true) {
+			cur = (low + high);
+			cur >>= 1; /* divide by two */
+			if (cur == low)
+				return cur;
+
+			if (cur*cur <= *this)
+				low = cur;
+			else
+				high = cur;
+		}
+		return cur;
+	}
 };
 
 template<typename T>
@@ -288,7 +305,8 @@ void test_six() {
 
 template<typename T>
 bool is_prime(const big_int<T>& A) {
-	T to_add = 2;
+	T to_add = 4;
+	big_int<T> sq = A.sqrt();
 	for(big_int<T> bi = 5; bi*bi <= A; bi += to_add) {
 		if (A.is_multiplicant_of(bi))
 			return false;
@@ -301,7 +319,7 @@ void test_seven() {
 	big_int<uint8> till = 100;
 	//till = till * till; // 10,000
 
-	uint8 to_add = 2;
+	uint8 to_add = 4;
 	for (big_int<uint8> bi = 5; bi <= till; bi += to_add) {
 		if (is_prime(bi))
 			cout << bi << endl;
@@ -312,5 +330,6 @@ void test_seven() {
 int main() {
 	
 	test_seven();
+
 	return 0;
 }
