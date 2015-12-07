@@ -10,6 +10,8 @@ typedef unsigned short uint16;
 typedef unsigned long uint32;
 typedef unsigned long long uint64;
 
+#define max_digits_allowed 1000
+
 template <typename T> struct big_int; /* forward declaration */
 
 template<typename T>
@@ -79,8 +81,8 @@ struct big_int {
 	}
 
 	big_int<T>& operator=(const big_int<T>& rhs) {
-		if (this == *rhs) return *this;
-		arr = rhs.arr(); // copy the other array
+		if (this == &rhs) return *this;
+		arr = rhs.arr; // copy the other array
 		return *this;
 	}
 	big_int<T>& operator+=(const big_int<T>& rhs) {
@@ -113,7 +115,23 @@ struct big_int {
 			arr[i] = elem;
 			carry = extra << (shift - degs);
 		}
+		if (arr.back() == 0) arr.pop_back();
 		return *this;
+	}
+
+	bool is_multiplicant_of(const big_int<T>& A) {
+		big_int<T> low = 1, high = from_power_two(arr.size() * shift);
+		big_int<T> cur = 0;
+		while (low != high) {
+			cout << low << ' ' << high << endl;
+			cur = (low + high);
+			cur >>= 1; /* divide by two */
+			if (cur*A <= *this)
+				high = cur;
+			else
+				low = cur;
+		}
+		return cur*A == *this;
 	}
 };
 
@@ -157,6 +175,20 @@ bool operator<=(const big_int<T>& A, const big_int<T>& B) {
 	/* they are equal */
 	return true;
 }
+template<typename T>
+bool operator==(const big_int<T>& A, const big_int<T>& B) {
+	if (A.arr.size() != B.arr.size())
+		return false;
+	for (int i = A.arr.size() - 1; i >= 0; --i)
+		if (A.arr[i] != B.arr[i])
+			return false;
+	/* they are equal */
+	return true;
+}
+template<typename T>
+bool operator!=(const big_int<T>& A, const big_int<T>& B) {
+	return !(A == B);
+}
 
 /* adds a string of numbers to another string of numbers*/
 string add(const string& A, const string& B) {
@@ -179,7 +211,7 @@ const string& power_two(int pw) {
 	static bool initialized = false;
 	if (!initialized) {
 		powers.push_back("1");
-		for (int i = 1; i < 100; ++i)
+		for (int i = 1; i < max_digits_allowed; ++i)
 			powers.push_back(add(powers.back(), powers.back()));
 		initialized = true;
 	}
@@ -239,9 +271,15 @@ void test_five() {
 		cout << (bi >>= 1) << endl;
 	}
 }
+
 int main() {
 	
-	test_five();
+	big_int<uint8> bi = (210) /* 210 = 2*3*5*7 */;
+	cout << "multiplicants of " << bi << " are : " << endl;
+	for (big_int<uint8> bj = 1, till = 210; bj <= till; bj += 1) {
+		if (bi.is_multiplicant_of(bj))
+			cout << bj << ' ';
+	}
 	
 	return 0;
 }
