@@ -51,6 +51,7 @@ template <typename T>
 struct big_int {
 	vector<T> arr;
 	static const int shift = sizeof(T)*8/2;
+	static const T power_shift = (1ULL << shift);
 	big_int(T initial = 0) {
 		arr.push_back(0);
 		*this += initial;
@@ -119,16 +120,28 @@ struct big_int {
 		return *this;
 	}
 
+	T operator%(T den) const {
+		if (arr.size() == 1) return arr[0] % den;
+		T ret = 0;
+		T position_mod = 1;
+		for (int i = 0, till = arr.size(); i < till; ++i) {
+			ret += (arr[i] * position_mod) % den;
+			ret %= den;
+			position_mod = (power_shift * position_mod)%den;
+		}
+		return ret;
+	}
+
 	bool is_multiplicant_of(const big_int<T>& A) const {
+		/* a very great optimization */
+		if (A.arr.size() == 1)
+			return (*this % A.arr[0]) == 0;
 		big_int<T> low = 1, high = from_power_two(arr.size() * shift);
 		big_int<T> cur = 0;
 		while (true) {
 			cur = (low + high);
 			cur >>= 1; /* divide by two */
 			if (cur == low) break;
-			//big_int<T> res = cur*A;
-			//cout << low << ' ' << high << " cur:" << cur << " res:" << res << endl;
-			//cout << res << " <= " << *this << " => " << (res <= *this) << endl;
 
 			if (cur*A <= *this)
 				low = cur;
@@ -353,7 +366,7 @@ bool is_prime(const big_int<T>& A) {
 
 void test_seven() {
 	big_int<uint8> till = 100;
-	//till = till * till; // 10,000
+	till = till * till; // 10,000
 
 	uint8 to_add = 4;
 	for (big_int<uint8> bi = 5; bi <= till; bi += to_add) {
@@ -363,9 +376,18 @@ void test_seven() {
 	}
 }
 
+void test_eight() {
+	big_int<uint8> till = 100;
+	till = till * till;
+	for (big_int<uint8> bi = 1; bi <= till; bi += 1)
+		cout << int(bi % 11) << endl;
+}
+
 int main() {
 	
-	test_four();
+	//test_eight();
+	//test_four();
+	test_seven();
 
 	return 0;
 }
