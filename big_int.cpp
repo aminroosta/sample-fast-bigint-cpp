@@ -105,6 +105,40 @@ big_int<T> operator+(const big_int<T>& A, const big_int<T>& B) {
 	return ret;
 }
 
+template<typename T>
+big_int<T> multiply_helper(const big_int<T>& A, T value, int position) {
+	big_int<T> ret = 0; ret.arr.pop_back();
+	for (int i = 0; i < position; ++i) ret.arr.push_back(0);
+	T carry = 0;
+	for (int i = 0, till = A.arr.size(); i < till; ++i) {
+		T elem = value * A.arr[i] + carry;
+		carry = big_int<T>::upper(elem);
+		big_int<T>::clean_upper(elem);
+		ret.arr.push_back(elem);
+	}
+	if (carry > 0) ret.arr.push_back(carry);
+	return ret;
+}
+
+template<typename T>
+big_int<T> operator*(const big_int<T>& A, const big_int<T>& B) {
+	big_int<T> ret = 0;
+	for (int i = 0, till = B.arr.size(); i < till; ++i)
+		ret += multiply_helper(A, B.arr[i], i);
+	return ret;
+}
+
+template<typename T>
+bool operator<=(const big_int<T>& A, const big_int<T>& B) {
+	if (A.arr.size() != B.arr.size())
+		return A.arr.size() < B.arr.size();
+	for (int i = A.arr.size() - 1; i >= 0; --i)
+		if (A.arr[i] != B.arr[i])
+			return A.arr[i] < B.arr[i];
+	/* they are equal */
+	return true;
+}
+
 /* adds a string of numbers to another string of numbers*/
 string add(const string& A, const string& B) {
 	vector<char> digits;
@@ -163,6 +197,20 @@ void test_two() {
 	big_int<uint8> bi = 150;
 	for (int i = 0; i < 250; ++i)
 		cout << (bi + big_int<uint8>(i)) << endl;
+}
+
+void test_three() {
+	big_int<uint8> bi = 180;
+	while (bi <= big_int<uint8>(200)) {
+		bi += 1;
+		cout << bi << endl;
+	}
+}
+
+void test_four() {
+	for (big_int<uint8> bi = 1, till = big_int<uint8>(20); bi <= till; bi += 1)
+		for (big_int<uint8> bj = 1, tillj = big_int<uint8>(17); bj <= tillj; bj += 1)
+			cout << bi << '*' << bj << '=' << bi*bj << endl;
 }
 
 int main() {
