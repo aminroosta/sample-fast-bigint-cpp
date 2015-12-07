@@ -96,6 +96,25 @@ struct big_int {
 		if (carry > 0) arr.push_back(carry);
 		return *this;
 	}
+	static big_int<T> from_power_two(int pw) {
+		big_int<T> ret; ret.arr.pop_back();
+		for (int i = 0; i < pw / shift; ++i)
+			ret.arr.push_back(0);
+		ret.arr.push_back(1ULL << (pw%shift));
+		return ret;
+	}
+	big_int<T>& operator>>=(int degs) {
+		T carry = 0;
+		for (int i = arr.size() - 1; i >= 0; --i) {
+			T elem = arr[i];
+			T extra = elem & ((1ULL << degs) - 1);
+			elem >>= degs;
+			elem |= carry;
+			arr[i] = elem;
+			carry = extra << (shift - degs);
+		}
+		return *this;
+	}
 };
 
 template<typename T>
@@ -213,8 +232,16 @@ void test_four() {
 			cout << bi << '*' << bj << '=' << bi*bj << endl;
 }
 
+void test_five() {
+	for (int i = 0; i < 20; ++i) {
+		big_int<uint8> bi = big_int<uint8>::from_power_two(i);
+		cout << bi << ' ';
+		cout << (bi >>= 1) << endl;
+	}
+}
 int main() {
 	
+	test_five();
 	
 	return 0;
 }
